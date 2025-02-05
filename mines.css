@@ -15,11 +15,13 @@ body {
   font-family: 'SF Pro Display', sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
+  padding-top: 60px;
 }
 
 .flex {
   display: flex;
   background: radial-gradient(50% 50% at 50% 50%, #151b2e 0, rgba(21, 27, 46, 0) 100%);
+  margin-top: 0;
 }
 
 .justify-center {
@@ -99,6 +101,7 @@ body {
 header {
             position: fixed;
             top: 0;
+            left:0;
             z-index: 10;
             width: 100%;
             padding: 10px 20px;
