@@ -5,44 +5,25 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
   document.addEventListener('DOMContentLoaded', function() {
-    // Prevent default touch behaviors
-    document.addEventListener('touchmove', function(e) {
+    // Prevent default touch behaviors globally
+    function preventTouchBehaviors(e) {
         e.preventDefault();
-    }, { passive: false });
+    }
 
-    // Disable zooming
-    document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-    });
-
-    document.addEventListener('gesturechange', function(e) {
-        e.preventDefault();
-    });
-
-    document.addEventListener('gestureend', function(e) {
-        e.preventDefault();
-    });
-
+    // Disable zooming and scrolling
+    document.addEventListener('touchmove', preventTouchBehaviors, { passive: false });
+    
     // Prevent pinch zoom
+    document.addEventListener('gesturestart', preventTouchBehaviors);
+    document.addEventListener('gesturechange', preventTouchBehaviors);
+    document.addEventListener('gestureend', preventTouchBehaviors);
+
+    // Comprehensive zoom prevention
     document.addEventListener('touchstart', function(e) {
         if (e.touches.length > 1) {
             e.preventDefault();
         }
     }, { passive: false });
-
-    // Disable browser zoom and scrolling
-    function disableZoom() {
-        document.documentElement.style.touchAction = 'none';
-        document.body.style.overflow = 'hidden';
-        
-        // Prevent default zoom on input focus
-        const inputs = document.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.blur();
-            });
-        });
-    }
 
     // Prevent zoom on double tap
     let lastTouchTime = 0;
@@ -52,64 +33,100 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
         }
         lastTouchTime = now;
-    }, false);
+    }, { passive: false });
 
-    // Prevent zooming via meta viewport tag
-    const metaViewport = document.querySelector('meta[name=viewport]');
-    if (metaViewport) {
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    // Prevent scrolling and bouncing
+    function preventScroll(e) {
+        e.preventDefault();
+        window.scrollTo(0, 0);
     }
 
-    // CSS to prevent selection and zoom
-    const style = document.createElement('style');
-    style.innerHTML = `
-        * {
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            touch-action: none;
-        }
-        input, textarea {
-            user-select: text;
-        }
-    `;
-    document.head.appendChild(style);
+    window.addEventListener('scroll', preventScroll);
 
-    // Call disable zoom function
-    disableZoom();
+    // Disable vertical scrolling
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
-    // Prevent scrolling
-    window.addEventListener('scroll', function(e) {
-        window.scrollTo(0, 0);
+    // Prevent default touch behaviors on the entire document
+    document.documentElement.style.touchAction = 'none';
+    document.body.style.touchAction = 'none';
+
+    // Prevent zoom via keyboard shortcuts
+    window.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '0')) {
+            e.preventDefault();
+        }
     });
+
+    // Prevent wheel zoom
+    window.addEventListener('wheel', function(e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 
     // Additional iOS-specific prevention
     if ('ontouchstart' in window) {
-        window.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        document.addEventListener('touchstart', preventTouchBehaviors, { passive: false });
+        document.addEventListener('touchmove', preventTouchBehaviors, { passive: false });
+        document.addEventListener('touchend', preventTouchBehaviors, { passive: false });
+    }
 
-        window.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+    // Create a style to prevent user selection and additional touch behaviors
+    const preventionStyle = document.createElement('style');
+    preventionStyle.innerHTML = `
+        html, body {
+            position: fixed;
+            overflow: hidden;
+            overscroll-behavior: none;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+    `;
+    document.head.appendChild(preventionStyle);
+
+    // Ensure viewport meta tag is set correctly
+    const metaViewport = document.querySelector('meta[name="viewport"]');
+    if (metaViewport) {
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    } else {
+        const newMetaViewport = document.createElement('meta');
+        newMetaViewport.name = 'viewport';
+        newMetaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        document.head.appendChild(newMetaViewport);
     }
 });
 
-// Prevent zoom on wheel
-document.addEventListener('wheel', function(e) {
-    if (e.ctrlKey) {
+// Prevent default behavior for all touch events
+document.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', function(e) {
+    e.preventDefault();
+}, { passive: false });
+
+// Prevent browser back/forward swipe gestures
+window.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) {
         e.preventDefault();
     }
 }, { passive: false });
-
-// Prevent keyboard zoom
-window.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && (e.key === '+' || e.key === '-')) {
-        e.preventDefault();
-    }
-});
     let originalState = cellsBoard.innerHTML;
   
     const params = new URLSearchParams(window.location.search);
