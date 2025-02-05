@@ -4,7 +4,112 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Элемент .cells-board не найден.');
       return;
     }
-  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Prevent default touch behaviors
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+
+    // Disable zooming
+    document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+    });
+
+    document.addEventListener('gesturechange', function(e) {
+        e.preventDefault();
+    });
+
+    document.addEventListener('gestureend', function(e) {
+        e.preventDefault();
+    });
+
+    // Prevent pinch zoom
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    // Disable browser zoom and scrolling
+    function disableZoom() {
+        document.documentElement.style.touchAction = 'none';
+        document.body.style.overflow = 'hidden';
+        
+        // Prevent default zoom on input focus
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.blur();
+            });
+        });
+    }
+
+    // Prevent zoom on double tap
+    let lastTouchTime = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = new Date().getTime();
+        if (now - lastTouchTime < 300) {
+            e.preventDefault();
+        }
+        lastTouchTime = now;
+    }, false);
+
+    // Prevent zooming via meta viewport tag
+    const metaViewport = document.querySelector('meta[name=viewport]');
+    if (metaViewport) {
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }
+
+    // CSS to prevent selection and zoom
+    const style = document.createElement('style');
+    style.innerHTML = `
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        input, textarea {
+            user-select: text;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Call disable zoom function
+    disableZoom();
+
+    // Prevent scrolling
+    window.addEventListener('scroll', function(e) {
+        window.scrollTo(0, 0);
+    });
+
+    // Additional iOS-specific prevention
+    if ('ontouchstart' in window) {
+        window.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+    }
+});
+
+// Prevent zoom on wheel
+document.addEventListener('wheel', function(e) {
+    if (e.ctrlKey) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+// Prevent keyboard zoom
+window.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === '+' || e.key === '-')) {
+        e.preventDefault();
+    }
+});
     let originalState = cellsBoard.innerHTML;
   
     const params = new URLSearchParams(window.location.search);
