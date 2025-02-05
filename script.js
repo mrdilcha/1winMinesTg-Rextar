@@ -4,48 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Элемент .cells-board не найден.');
       return;
     }
-  document.addEventListener('DOMContentLoaded', function() {
-    // Prevent default touch behaviors globally
-    function preventTouchBehaviors(e) {
-        e.preventDefault();
+ document.addEventListener('DOMContentLoaded', function() {
+    // Set viewport
+    const metaViewport = document.querySelector('meta[name="viewport"]');
+    if (metaViewport) {
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
     }
-
-    // Disable zooming and scrolling
-    document.addEventListener('touchmove', preventTouchBehaviors, { passive: false });
-    
-    // Prevent pinch zoom
-    document.addEventListener('gesturestart', preventTouchBehaviors);
-    document.addEventListener('gesturechange', preventTouchBehaviors);
-    document.addEventListener('gestureend', preventTouchBehaviors);
-
-    // Comprehensive zoom prevention
-    document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    // Prevent zoom on double tap
-    let lastTouchTime = 0;
-    document.addEventListener('touchend', function(e) {
-        const now = new Date().getTime();
-        if (now - lastTouchTime < 300) {
-            e.preventDefault();
-        }
-        lastTouchTime = now;
-    }, { passive: false });
-
-    // Prevent scrolling and bouncing
-    function preventScroll(e) {
-        e.preventDefault();
-        window.scrollTo(0, 0);
-    }
-
-    window.addEventListener('scroll', preventScroll);
-
-    // Disable vertical scrolling
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
 
     // Prevent zoom via keyboard shortcuts
     window.addEventListener('keydown', function(e) {
@@ -61,61 +25,70 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }, { passive: false });
 
-    // Additional iOS-specific prevention
-    if ('ontouchstart' in window) {
-        document.addEventListener('touchstart', preventTouchBehaviors, { passive: false });
-        document.addEventListener('touchmove', preventTouchBehaviors, { passive: false });
-        document.addEventListener('touchend', preventTouchBehaviors, { passive: false });
-    }
-
-    // Create a style to prevent user selection and additional touch behaviors
+    // Create styles to prevent scrolling and zooming while allowing button clicks
     const preventionStyle = document.createElement('style');
     preventionStyle.innerHTML = `
-        html, body {
-            position: fixed;
+        html {
             overflow: hidden;
             overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed;
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
         }
-        * {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: none;
+        .cell, button {
+            touch-action: manipulation;
+            cursor: pointer;
         }
     `;
     document.head.appendChild(preventionStyle);
 
-    // Ensure viewport meta tag is set correctly
-    const metaViewport = document.querySelector('meta[name="viewport"]');
-    if (metaViewport) {
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-    } else {
-        const newMetaViewport = document.createElement('meta');
-        newMetaViewport.name = 'viewport';
-        newMetaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-        document.head.appendChild(newMetaViewport);
-    }
+    // Handle touchmove events only on body, not on interactive elements
+    document.body.addEventListener('touchmove', function(e) {
+        if (!e.target.closest('.cell') && !e.target.closest('button')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    // Prevent double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+
+    // Allow pinch zoom prevention but keep button touches
+    document.addEventListener('gesturestart', function(e) {
+        if (!e.target.closest('.cell') && !e.target.closest('button')) {
+            e.preventDefault();
+        }
+    });
+
+    // Prevent bouncing/rubber-banding effect
+    document.body.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1 && !e.target.closest('.cell') && !e.target.closest('button')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    // Handle scroll prevention but allow button interactions
+    window.addEventListener('scroll', function() {
+        if (window.scrollY !== 0) {
+            window.scrollTo(0, 0);
+        }
+    });
 });
-
-// Prevent default behavior for all touch events
-document.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchend', function(e) {
-    e.preventDefault();
-}, { passive: false });
 
     let originalState = cellsBoard.innerHTML;
   
