@@ -4,6 +4,42 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Элемент .cells-board не найден.');
       return;
     }
+ document.addEventListener('gesturestart', function (e) {
+    e.preventDefault();
+});
+document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+        event.preventDefault();
+    }
+}, { passive: false });
+document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) {
+        event.preventDefault();
+    }
+}, { passive: false });
+
+    // Prevent scrolling with keyboard (Arrow keys, Spacebar, Page Up/Down)
+document.addEventListener("keydown", function (event) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) {
+        event.preventDefault();
+    }
+}, { passive: false });
+
+// Prevent mouse wheel scrolling
+document.addEventListener("wheel", function (event) {
+    event.preventDefault();
+}, { passive: false });
+
+// Prevent touch scrolling on mobile devices
+document.addEventListener("touchmove", function (event) {
+    event.preventDefault();
+}, { passive: false });
+
+
+
+
+
+    
     let originalState = cellsBoard.innerHTML;
   
     const params = new URLSearchParams(window.location.search);
