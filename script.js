@@ -47,10 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
-    // Prevent default touch behaviors on the entire document
-    document.documentElement.style.touchAction = 'none';
-    document.body.style.touchAction = 'none';
-
     // Prevent zoom via keyboard shortcuts
     window.addEventListener('keydown', function(e) {
         if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '0')) {
@@ -121,12 +117,6 @@ document.addEventListener('touchend', function(e) {
     e.preventDefault();
 }, { passive: false });
 
-// Prevent browser back/forward swipe gestures
-window.addEventListener('touchstart', function(e) {
-    if (e.touches.length > 1) {
-        e.preventDefault();
-    }
-}, { passive: false });
     let originalState = cellsBoard.innerHTML;
   
     const params = new URLSearchParams(window.location.search);
